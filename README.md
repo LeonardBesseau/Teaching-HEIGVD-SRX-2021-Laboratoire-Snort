@@ -346,7 +346,7 @@ Vous pouvez aussi utiliser des captures Wireshark ou des fichiers snort.log.xxxx
 
 ---
 
-**Réponse :**  
+**Réponse :**  Des modules pour pré-traité des paquets en les examinant ou même les modifiant. 
 
 ---
 
@@ -354,7 +354,7 @@ Vous pouvez aussi utiliser des captures Wireshark ou des fichiers snort.log.xxxx
 
 ---
 
-**Réponse :**  
+**Réponse :**  Les directive de préprocesseurs ne figurent pas dans le fichier config.
 
 ---
 
@@ -370,7 +370,7 @@ alert tcp any any -> any any (msg:"Mon nom!"; content:"Rubinstein"; sid:4000015;
 
 ---
 
-**Réponse :**  
+**Réponse :**  Générer une alerte et écrire le paquet dans le journal pour les connections tcp dans n'importe quel sens, n'importe quel adresse ip et numéros de port si les options sont valides. Pour qu'une alerte soit générée, il faut qu'il y ait dans le contenu: "Rubinstein". Le paquet sera alors écrit avec l’entête "Mon nom!", le sid et le numéro de révision.
 
 ---
 
@@ -384,7 +384,7 @@ sudo snort -c myrules.rules -i eth0
 
 ---
 
-**Réponse :**  
+**Réponse :**  L'initialisation de snort, les paramètres de configurations, un comptage de toutes les règles actives par protocoles concernés et finalement le logo avec les copyrights avant d'afficher le début de l'analyse de paquet. 
 
 ---
 
@@ -394,7 +394,7 @@ Aller à un site web contenant dans son text la phrase ou le mot clé que vous a
 
 ---
 
-**Réponse :**  
+**Réponse :**  `WARNING: No preprocessors configured for policy 0`
 
 ---
 
@@ -404,7 +404,13 @@ Arrêter Snort avec `CTRL-C`.
 
 ---
 
-**Réponse :**  
+**Réponse :**  Un récapitulatif de la session avec de nombreuses statistiques: 
+
+- Runtime avec nombre de paquets et intensité du trafic (paquets par minutes/secondes) 
+- Usage mémoire 
+- Des statistiques sur les paquets (Nombre reçu, pourcentage analysé, rejeté, filtré, ignoré)
+- Statistique des paquets par protocole (Paquets analysés) 
+- Statistique des actions entreprises (Nombre d'actions)
 
 ---
 
@@ -416,6 +422,21 @@ Aller au répertoire /var/log/snort. Ouvrir le fichier `alert`. Vérifier qu'il 
 ---
 
 **Réponse :**  
+
+```bash
+[**] [1:4000015:1] Dark side ! [**]									## Entête
+[Priority: 0] 														## Priorité
+04/15-14:37:32.019759 13.224.89.188:80 -> 192.168.10.3:32822		## Timestamp, src->dst
+TCP TTL:241 TOS:0x0 ID:40414 IpLen:20 DgmLen:1160					## Protocol, IP Header
+***AP*** Seq: 0x7616A295  Ack: 0x219977E2  Win: 0x80  TcpLen: 32	## More Header
+TCP Options (3) => NOP NOP TS: 2298560242 3002866610 				
+```
+
+[\*\*] ... [\*\*] : L’entête contient les numéros SID:Revision, ainsi que le message d'alerte prédéfinit. 
+[Priority: 0] : la priorité du paquet 
+04/15- ... -> 192.168.10.3:32822 : Le timestamp du paquet ainsi que les adresses ip source et destination.
+TCP ... : Des informations du header IP
+\*\*\*AP\*\*\* : D'autres informations sur le header, notamment des infos sur TCP header
 
 ---
 
@@ -430,7 +451,10 @@ Ecrire une règle qui journalise (sans alerter) un message à chaque fois que Wi
 
 ---
 
-**Réponse :**  
+**Réponse :**  `log tcp 192.168.10.3 any <> 91.198.174.194 any (sid:4000016; rev:1;)`
+
+Le message est journalisé dans : `/var/log/snort/snort.log.xxxxxxxxxx`
+Les paquets détecter par les règles. 
 
 ---
 
