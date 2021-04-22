@@ -468,7 +468,7 @@ Ecrire une règle qui alerte à chaque fois que votre machine IDS reçoit un pin
 
 ---
 
-**Réponse :**  
+**Réponse :**  `alert icmp any any -> 192.168.10.2 any (msg:"Receiving ping"; sid:4000017; rev:1; itype: 8)`
 
 ---
 
@@ -477,7 +477,7 @@ Ecrire une règle qui alerte à chaque fois que votre machine IDS reçoit un pin
 
 ---
 
-**Réponse :**  
+**Réponse :**  Grâce à l'option `itype` qui permet de préciser le type de message icmp. Ici, `8` correspond à un `echo request`
 
 ---
 
@@ -486,16 +486,23 @@ Ecrire une règle qui alerte à chaque fois que votre machine IDS reçoit un pin
 
 ---
 
-**Réponse :**  
+**Réponse :**  Le message est journalisé dans : `/var/log/snort/snort.log.xxxxxxxxxx`
 
 ---
-
 
 **Question 12: Qu'est-ce qui a été journalisé ? (vous pouvez lire les fichiers log utilisant la commande `tshark -r nom_fichier_log` **
 
 ---
 
 **Réponse :**  
+
+```bash
+    1   0.000000 192.168.10.3 ? 192.168.10.2 ICMP 98 Echo (ping) request  id=0xf66b, seq=1/256, ttl=64
+    2   1.016305 192.168.10.3 ? 192.168.10.2 ICMP 98 Echo (ping) request  id=0xf66b, seq=2/512, ttl=64
+    3   2.040300 192.168.10.3 ? 192.168.10.2 ICMP 98 Echo (ping) request  id=0xf66b, seq=3/768, ttl=64
+```
+
+Les paquets ayant émis l'alerte sont enregistrés. Les adresses ip de destination (`192.168.10.3`) et source (`192.168.10.2`) sont notées ainsi que le protocole utilisé (`ICMP`). On connait aussi d'eutres informations comme le type de message (`Echo request`) ou encore le `ttl`.  
 
 ---
 
@@ -509,10 +516,9 @@ Faites le nécessaire pour que les pings soient détectés dans les deux sens.
 
 ---
 
-**Réponse :**  
+**Réponse :**  `alert icmp any any <> 192.168.10.2 any (msg:"Icmp echo request"; sid:4000017; rev:1; itype: 8)`
 
 ---
-
 
 --
 
@@ -524,7 +530,7 @@ Essayer d'écrire une règle qui Alerte qu'une tentative de session SSH a été 
 
 ---
 
-**Réponse :**  
+**Réponse :**  `alert tcp 192.168.10.3 any -> 192.168.10.2 22 (msg:"SSH"; sid:4000018; rev:1;)`
 
 ---
 
@@ -533,7 +539,7 @@ Essayer d'écrire une règle qui Alerte qu'une tentative de session SSH a été 
 
 ---
 
-**Réponse :**  
+**Réponse :**  **GROS BUG**
 
 ---
 
@@ -555,7 +561,7 @@ Générez du trafic depuis le deuxième terminal qui corresponde à l'une des r�
 
 ---
 
-**Réponse :**  
+**Réponse :**  `-r` 
 
 ---
 
@@ -565,7 +571,7 @@ Utiliser l'option correcte de Snort pour analyser le fichier de capture Wireshar
 
 ---
 
-**Réponse :**  
+**Réponse :**  Il analyse les paquets et applique les règles en fonction. Non il n'y pas de différence mise à part l'initialisation. 
 
 ---
 
@@ -573,7 +579,7 @@ Utiliser l'option correcte de Snort pour analyser le fichier de capture Wireshar
 
 ---
 
-**Réponse :**  
+**Réponse :**  Si on rajoute l'option `-c` avec les règles, on enregistre aussi des alertes. 
 
 ---
 
@@ -587,25 +593,23 @@ Faire des recherches à propos des outils `fragroute` et `fragrouter`.
 
 ---
 
-**Réponse :**  
+**Réponse :**  Permet d'effectuer des attaques sur un réseau avec un IDS/NIDS.
 
 ---
-
 
 **Question 20: Quel est le principe de fonctionnement ?**
 
 ---
 
-**Réponse :**  
+**Réponse :**  Utiliser des paquets fragmentés pour éviter la détection
 
 ---
-
 
 **Question 21: Qu'est-ce que le `Frag3 Preprocessor` ? A quoi ça sert et comment ça fonctionne ?**
 
 ---
 
-**Réponse :**  
+**Réponse :**  Un preprocessor pour snort qui vise à empêcher les "évasions" de paquets fragmentés. Il permet aussi de mieux gérer ces paquets en améliorant les performance d'analyse. 
 
 ---
 
@@ -619,7 +623,7 @@ L'outil nmap propose une option qui fragmente les messages afin d'essayer de con
 
 ---
 
-**Réponse :**  
+**Réponse :**  `alert tcp any any -> 192.168.10.2 22 (flags: S;msg:"NMAP SYN scan"; sid:4000008; rev:1;)`
 
 ---
 
@@ -641,7 +645,7 @@ nmap -sS -f -p 22 --send-eth 192.168.1.2
 
 ---
 
-**Réponse :**  
+**Réponse :**  Snort ne détecte pas le scan
 
 ---
 
@@ -653,7 +657,16 @@ Modifier le fichier `myrules.rules` pour que snort utiliser le `Frag3 Preprocess
 
 ---
 
-**Réponse :**  
+**Réponse :**  Snort détecte le paquet fragmentée et lève une alerte.
+
+```bash
+[**] [1:4000019:1] NMAP SYN scan [**]
+[Priority: 0] 
+04/22-14:05:12.599080 192.168.10.3:35304 -> 192.168.10.2:22
+TCP TTL:43 TOS:0x0 ID:32196 IpLen:20 DgmLen:44
+******S* Seq: 0xB0E425D3  Ack: 0x0  Win: 0x400  TcpLen: 24
+TCP Options (1) => MSS: 1460 
+```
 
 ---
 
@@ -662,7 +675,7 @@ Modifier le fichier `myrules.rules` pour que snort utiliser le `Frag3 Preprocess
 
 ---
 
-**Réponse :**  
+**Réponse :**  A améliorer les performances de snort en observant uniquement le handshake (les données étant encryptées, on ne peut faire d'analyse utile dessus). Il permet également de vérifier que le handshake n'a pas été crafté pour échapper à snort et que le traffic est bien encrypté.
 
 ---
 
@@ -671,7 +684,7 @@ Modifier le fichier `myrules.rules` pour que snort utiliser le `Frag3 Preprocess
 
 ---
 
-**Réponse :**  
+**Réponse :**  A faire de la détection et du filtrage d'information personnelles d'identification (numéro de carte de crédit, email, etc)
 
 ---
 
